@@ -26,28 +26,31 @@ object Server {
     }
   }
 
-  val stream: Process[Task,Long] =
+  def stream(socket: WebSocket): Process[Task,Unit] =
     Process.awakeEvery(1.seconds)(Strategy.Executor(serverPool),schedulingPool)
-           .map(_ => System.currentTimeMillis)
+           .map(_ => System.currentTimeMillis.toString)
+           .evalMap(str => Task.delay { socket.send(str); () } )
 
   def main(args: Array[String]): Unit = {
     unfiltered.netty.Server
       .http(8080)
       .resources(getClass.getResource("/www/"), cacheSeconds = 60)
-      .handler(Example(stream))
+      .handler(Example)
       .run
   }
 }
 
 @io.netty.channel.ChannelHandler.Sharable
-case class Example(proc: Process[Task,Long]) extends websockets.Plan with cycle.SynchronousExecution with ServerErrorResponse {
+object Example extends websockets.Plan with cycle.SynchronousExecution with ServerErrorResponse {
   println(">>>>>>>>>>>>>>>>>>>>>>")
 
   val pass: PassHandler = DefaultPassHandler
   def intent = {
     case GET(Path("/stream")) => {
-      case Open(s) => proc.evalMap(long => s.send(long.toString))
-      // case Message(s, Text(str)) => sockets.foreach(_.send(str.reverse))
+      case Open(s) => {
+        Server.stream(s)
+      }
+      case Message(s, Text(str)) => println(">>><<<<>>><<<<>>> " + str)
       // case Close(s)              => sockets -= s
       case Error(s, e)           => println("error %s" format e.getMessage)
     }

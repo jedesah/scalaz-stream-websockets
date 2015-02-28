@@ -21,7 +21,7 @@
     <ul></ul>
     <script type="text/javascript">
        (function(jq){
-         var socket, host = "ws://localhost:8080/";
+         var socket, host = "ws://localhost:8080/stream";
 
           var supported = function() { return window.WebSocket || window.MozWebSocket; }
           , newWebSocket = function(uri) { return window.WebSocket ?
