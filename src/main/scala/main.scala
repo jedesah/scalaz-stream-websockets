@@ -33,6 +33,7 @@ object Server {
   def main(args: Array[String]): Unit = {
     unfiltered.netty.Server
       .http(8080)
+      .resources(getClass.getResource("/www/"), cacheSeconds = 60)
       .handler(Example(stream))
       .run
   }
@@ -40,13 +41,15 @@ object Server {
 
 @io.netty.channel.ChannelHandler.Sharable
 case class Example(proc: Process[Task,Long]) extends websockets.Plan with cycle.SynchronousExecution with ServerErrorResponse {
+  println(">>>>>>>>>>>>>>>>>>>>>>")
+
   val pass: PassHandler = DefaultPassHandler
   def intent = {
     case GET(Path("/stream")) => {
       case Open(s) => proc.evalMap(long => s.send(long.toString))
       // case Message(s, Text(str)) => sockets.foreach(_.send(str.reverse))
       // case Close(s)              => sockets -= s
-      // case Error(s, e)           => println("error %s" format e.getMessage)
+      case Error(s, e)           => println("error %s" format e.getMessage)
     }
   }
 }

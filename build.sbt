@@ -1,4 +1,8 @@
 
+import spray.revolver.RevolverPlugin._
+
+Revolver.settings
+
 organization := "com.timperrett"
 
 name := "scalaz-stream-websockets"
@@ -13,3 +17,6 @@ libraryDependencies ++= Seq(
 )
 
 resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+
+mainClass in Revolver.reStart := Some("example.Server")
+
