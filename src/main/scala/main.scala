@@ -5,6 +5,7 @@ import unfiltered.response._
 import unfiltered.netty._
 import unfiltered.netty.websockets._
 import scalaz.stream.Process
+import scalaz.stream.time
 import scalaz.concurrent.{Task,Strategy}
 import scala.concurrent.duration._
 import java.util.concurrent.{Executors, ExecutorService, ScheduledExecutorService, ThreadFactory}
@@ -27,7 +28,7 @@ object Server {
   }
 
   def stream(socket: WebSocket): Process[Task,Unit] =
-    Process.awakeEvery(1.seconds)(Strategy.Executor(serverPool),schedulingPool)
+      time.awakeEvery(1.seconds)(Strategy.Executor(serverPool),schedulingPool)
            .map(_ => System.currentTimeMillis.toString)
            .evalMap(str => Task.delay { socket.send(str); () } )
 
